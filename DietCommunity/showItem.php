@@ -1,4 +1,10 @@
-<!DOCTYPE html> 
+<?php
+@session_start();
+if (!isset($_SESSION['id'])){
+	header('Location: my.php');
+}
+?>
+<!DOCTYPE html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -35,7 +41,7 @@ $annonce = json_decode(encode(getAnnonceForPersonne($id)));
 		echo "<h4>Sexe : $p->sexe - Poids actuel : $p->actuel kg - Objectif : $p->objectif kg - Taille : $p->taille cm</h4>";
 		echo "<p>$annonce->value</p>";
 		echo "<hr/>";
-		
+
 		?>
 		<ul data-role="listview" id="maListe">
 		<?php

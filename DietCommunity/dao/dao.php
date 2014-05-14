@@ -8,13 +8,22 @@ function encode($s){
 		return null;
 	}
 }
-
+function connectPersonne($pseudo,$password){
+	$connexion = getConnexion();
+	$sql="
+		SELECT id from personne where (pseudo = ? and password= ?) or (email = ? and password = ?)";
+	$sth=$connexion->prepare($sql);
+	$sth->execute(array($pseudo,$password,$pseudo,$password));
+	$retour = $sth->fetchColumn();
+	echo $retour;
+	return $retour;
+}
 function getPersonnes(){
 	$connexion = getConnexion();
 	$sql="
 		SELECT id,dateNaissance,pseudo,depart,sexe,password,email,taille from personne ORDER BY id desc";
 	$sth=$connexion->prepare($sql);
-	$sth->execute();		
+	$sth->execute();
 	$us = array();
 	while ($row=$sth->fetch()){
 		traiteResultPersonne($row);
@@ -27,7 +36,7 @@ function getPersonne($id){
 	$sql="
 		SELECT id,dateNaissance,pseudo,depart,sexe,password,email,taille from personne where id = ?";
 	$sth=$connexion->prepare($sql);
-	$sth->execute(array($id));		
+	$sth->execute(array($id));
 	$row=$sth->fetch();
 	if($row!=null){
 		traiteResultPersonne($row);
@@ -39,7 +48,7 @@ function getAnnonceForPersonne($id){
 	$sql="
 		SELECT * from annonce where idPersonne = ?";
 	$sth=$connexion->prepare($sql);
-	$sth->execute(array($id));		
+	$sth->execute(array($id));
 	$row=$sth->fetch();
 	if($row!=null){
 		traiteAnnonce($row);
@@ -51,7 +60,7 @@ function getPostsForPersonne($id){
 	$sql="
 		SELECT * from post where idPersonne = ? order by id desc";
 	$sth=$connexion->prepare($sql);
-	$sth->execute(array($id));		
+	$sth->execute(array($id));
 	$us = array();
 	while ($row=$sth->fetch()){
 		traitePost($row);
@@ -62,9 +71,9 @@ function getPostsForPersonne($id){
 function getCommentairesForPost($id){
 	$connexion = getConnexion();
 	$sql="
-		SELECT * from commentaire where idPost = ?";
+		SELECT * from commentaire where idPost = ? order by id desc";
 	$sth=$connexion->prepare($sql);
-	$sth->execute(array($id));		
+	$sth->execute(array($id));
 	$us = array();
 	while ($row=$sth->fetch()){
 		traiteCommentaire($row);
@@ -72,12 +81,35 @@ function getCommentairesForPost($id){
 	}
 	return $us;
 }
+function getCommentaire($id){
+	$connexion = getConnexion();
+	$sql="
+		SELECT * from commentaire where id = $id order by id desc";
+	$sth=$connexion->prepare($sql);
+	$sth->execute();
+	$row=$sth->fetch();
+
+	traiteCommentaire($row);
+
+	return $row;
+}
+function createCommentaire($value,$idPost,$idPersonne){
+	$connexion = getConnexion();
+	$sql = "insert into commentaire (idPersonne,value,dateCreation,idPost) values (?,?,?,?)";
+	$sth=$connexion->prepare($sql);
+	$sth->execute(array($idPersonne,$value,mktime(),$idPost));
+	$sql = "select id from commentaire where idPost = $idPost order by id desc limit 1";
+	$sth=$connexion->prepare($sql);
+	$sth->execute();
+	$idDernier =  $sth->fetchColumn();
+	return getCommentaire($idDernier);
+}
 function getFavorisForPersonne($id){
 	$connexion = getConnexion();
 	$sql="
 		SELECT * from favori where idFrom = ?";
 	$sth=$connexion->prepare($sql);
-	$sth->execute(array($id));		
+	$sth->execute(array($id));
 	$us = array();
 	while ($row=$sth->fetch()){
 		$personneTo = getPersonne($row['idTo']);
@@ -91,9 +123,9 @@ function getNbrCommentaires($id){
 	$sql="
 		SELECT count(*) from commentaire where idPost = ?";
 	$sth=$connexion->prepare($sql);
-	$sth->execute(array($id));		
+	$sth->execute(array($id));
 	return $sth->fetchColumn();
-	
+
 }
 function traiteResultPersonne(&$row){
 	$row['objectif']=getObjectif($row['id']);
@@ -110,7 +142,7 @@ function traiteResultPersonne(&$row){
 function traiteCommentaire(&$row){
 	$personne = getPersonne($row['idPersonne']);
 	$row['pseudo']=$personne['pseudo'];
-	$row['dateCreation']=formatDate($row['dateCreation']);
+	$row['dateCreation']=formatDateTime($row['dateCreation']);
 }
 function traiteAnnonce(&$row){
 	$row['dateCreation']=formatDate($row['dateCreation']);
@@ -123,6 +155,9 @@ function traitePost(&$row){
 }
 function formatDate($da){
 	return date("d/m/Y",$da);
+}
+function formatDateTime($da){
+	return date("d/m/Y H:i",$da);
 }
 function getPoidsActuel($id){
 	$connexion = getConnexion();
