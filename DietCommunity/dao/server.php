@@ -1,0 +1,16 @@
+<?php 
+$PARAM_hote="sql204.0fees.us";
+$PARAM_nom_db="0fe_14615157_proximity";
+$PARAM_utilisateur="0fe_14615157";
+$PARAM_mot_passe="5eunwksa";
+/*
+$PARAM_hote="localhost";
+$PARAM_nom_db="findme";
+$PARAM_utilisateur="findme";
+$PARAM_mot_passe="findme";
+*/
+$PARAM_hote="localhost";
+$PARAM_nom_db="regime";
+$PARAM_utilisateur="regime";
+$PARAM_mot_passe="regime";
+?>
